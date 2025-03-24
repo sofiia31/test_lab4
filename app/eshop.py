@@ -1,3 +1,6 @@
+from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
+from services import ShippingService
 from typing import Dict
 import uuid
 class Product:
@@ -53,9 +56,6 @@ class ShoppingCart:
 
         return product_ids
 
-from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
-from services import ShippingService
 
 @dataclass
 class Order:
@@ -68,13 +68,15 @@ class Order:
             due_date = datetime.now(timezone.utc) + timedelta(seconds=3)
         product_ids = self.cart.submit_cart_order()
         print(due_date)
-        return self.shipping_service.create_shipping(shipping_type, product_ids, self.order_id, due_date)
+        return self.shipping_service.create_shipping(shipping_type, 
+                                                     product_ids, 
+                                                     self.order_id, 
+                                                     due_date)
 
 @dataclass()
 class Shipment:
     shipping_id: str
     shipping_service: ShippingService
-
     def check_shipping_status(self):
         return self.shipping_service.check_status(self.shipping_id)
 
