@@ -15,13 +15,12 @@ class ShippingPublisher:
         response = self.client.create_queue(QueueName=SHIPPING_QUEUE)
         self.queue_url = response["QueueUrl"]
 
-    def send_new_shipping(self, shipping_id: str):
+    def send_new_shipping(self, shipping_id: str) -> str:
         response = self.client.send_message(
             QueueUrl=self.queue_url,
             MessageBody=shipping_id
         )
-
-        return response['MessageId']
+        return shipping_id
 
     def poll_shipping(self, batch_size: int = 10):
         messages = self.client.receive_message(

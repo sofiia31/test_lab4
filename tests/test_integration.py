@@ -87,9 +87,16 @@ def test_when_place_order_then_shipping_in_queue(dynamo_resource):
     sqs_client = boto3.client(
         "sqs",
         endpoint_url=AWS_ENDPOINT_URL,
-        region_name=AWS_REGION
+        region_name=AWS_REGION,
+        aws_access_key_id="test",
+        aws_secret_access_key="test",
     )
     queue_url = sqs_client.get_queue_url(QueueName=SHIPPING_QUEUE)["QueueUrl"]
+
+    # Очистити чергу перед отриманням повідомлення
+    sqs_client.purge_queue(QueueUrl=queue_url)
+
+    # Дочекатися, поки повідомлення з'явиться в черзі
     response = sqs_client.receive_message(
         QueueUrl=queue_url,
         MaxNumberOfMessages=1,
@@ -97,12 +104,11 @@ def test_when_place_order_then_shipping_in_queue(dynamo_resource):
     )
 
     messages = response.get("Messages", [])
-    assert len(messages) == 1, "Expected 1 SQS message"
+    assert len(messages) == 1, f"Expected 1 SQS message, got {len(messages)}"
 
     body = messages[0]["Body"]
-    assert shipping_id == body
-
-
+    assert shipping_id == body, f"Expected shipping_id {shipping_id}, but got {body}"
+    
 def test_create_shipping_valid_type(dynamo_resource):
     shipping_service = ShippingService(ShippingRepository(), ShippingPublisher())
     cart = ShoppingCart()
