@@ -96,11 +96,14 @@ def test_when_place_order_then_shipping_in_queue(dynamo_resource):
     # Очистити чергу перед отриманням повідомлення
     sqs_client.purge_queue(QueueUrl=queue_url)
 
+    # Дати час LocalStack обробити повідомлення
+    time.sleep(1)
+
     # Дочекатися, поки повідомлення з'явиться в черзі
     response = sqs_client.receive_message(
         QueueUrl=queue_url,
         MaxNumberOfMessages=1,
-        WaitTimeSeconds=10
+        WaitTimeSeconds=20  # Збільшено до 20 секунд
     )
 
     messages = response.get("Messages", [])
@@ -108,7 +111,7 @@ def test_when_place_order_then_shipping_in_queue(dynamo_resource):
 
     body = messages[0]["Body"]
     assert shipping_id == body, f"Expected shipping_id {shipping_id}, but got {body}"
-    
+
 def test_create_shipping_valid_type(dynamo_resource):
     shipping_service = ShippingService(ShippingRepository(), ShippingPublisher())
     cart = ShoppingCart()
